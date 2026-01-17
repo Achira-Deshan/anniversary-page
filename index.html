@@ -417,9 +417,10 @@
     transition: all 0.3s ease;
     cursor: pointer;
     background: white;
+    -webkit-tap-highlight-color: transparent;
 }
 
-.gallery-item:hover {
+.gallery-item:hover, .gallery-item:active {
     transform: translateY(-5px) scale(1.02);
     box-shadow: 0 20px 40px rgba(255, 105, 135, 0.3);
 }
@@ -429,8 +430,10 @@
     height: 300px;
     object-fit: cover;
     display: block;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
 }
-
 .gallery-item-caption {
     padding: 15px;
     text-align: center;
@@ -778,12 +781,17 @@
         const playIcon = document.getElementById('playIcon');
         const pauseIcon = document.getElementById('pauseIcon');
 
-        function toggleMusic() {
+function toggleMusic() {
             if (music.paused) {
-                music.play();
-                playIcon.style.display = 'none';
-                pauseIcon.style.display = 'block';
-                musicBtn.classList.add('playing');
+                music.play().then(() => {
+                    playIcon.style.display = 'none';
+                    pauseIcon.style.display = 'block';
+                    musicBtn.classList.add('playing');
+                }).catch(err => {
+                    console.log('Playback failed:', err);
+                    // Retry once more for mobile
+                    setTimeout(() => music.play(), 100);
+                });
             } else {
                 music.pause();
                 playIcon.style.display = 'block';
@@ -791,6 +799,17 @@
                 musicBtn.classList.remove('playing');
             }
         }
+        
+        // Preload audio on first user interaction (mobile fix)
+        let audioReady = false;
+        function prepareAudio() {
+            if (!audioReady) {
+                music.load();
+                audioReady = true;
+            }
+        }
+        document.addEventListener('touchstart', prepareAudio, { once: true });
+        document.addEventListener('click', prepareAudio, { once: true });
 
         // Reveal Envelope
         function revealEnvelope() {
