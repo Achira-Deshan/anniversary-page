@@ -452,6 +452,18 @@
     font-size: 0.9rem;
 }
 
+/* Disable custom cursor on touch devices */
+@media (hover: none) and (pointer: coarse) {
+    body {
+        cursor: auto;
+    }
+
+    .custom-cursor,
+    .sparkle {
+        display: none !important;
+    }
+}
+
     </style>
 </head>
 
@@ -482,7 +494,7 @@
                 <rect x="14" y="4" width="4" height="16"></rect>
             </svg>
         </div>
-        <audio id="bgMusic" loop>
+        <audio id="bgMusic" loop playsinline preload="metadata">
             <source src="https://pub-7fe2fa6f301948bf903f191a5984799c.r2.dev/Pink%20Sweat%24%20-%20At%20My%20Worst%20(Lyrics).mp3" type="audio/mpeg">
         </audio>
     </div>
@@ -982,19 +994,14 @@ const galleryImages = [
         title: "Our First Photo Together",
         date: "November 6, 2025"
     }
-    // Add more images here in the future with the same format:
-    // {
-    //     url: "https://pub-7fe2fa6f301948bf903f191a5984799c.r2.dev/20251106_111454(1)(1)%20(1).jpg",
-    //     title: "Photo Title",
-    //     date: "Date"
-    // }
+
 ];
 
 function loadGallery() {
     const grid = document.getElementById('galleryGrid');
     grid.innerHTML = galleryImages.map((img, index) => `
         <div class="gallery-item" data-aos="zoom-in" data-aos-delay="${index * 100}">
-            <img src="${img.url}" alt="${img.title}" loading="lazy">
+            <img src="${encodeURI(img.url)}" alt="${img.title}" loading="lazy">
             <div class="gallery-item-caption">
                 <h4>${img.title}</h4>
                 <p>${img.date}</p>
@@ -1013,6 +1020,21 @@ function openGallery() {
 function closeGallery() {
     document.getElementById('galleryOverlay').style.display = 'none';
 }
+
+// Mobile audio unlock (required for iOS & Android)
+let audioUnlocked = false;
+
+function unlockAudio() {
+    if (!audioUnlocked) {
+        music.play().then(() => {
+            music.pause();
+            audioUnlocked = true;
+        }).catch(() => {});
+    }
+}
+
+document.addEventListener('touchstart', unlockAudio, { once: true });
+document.addEventListener('click', unlockAudio, { once: true });
 
     </script>
 </body>
